@@ -25,12 +25,8 @@ def wkt2epsg(wkt, forceProj4 = False, cstypeStat = False):
                        ~ cstype is True, the function will only return 'GEOGCS' or 'PROJCS'                 
     '''
                        
-    # Alternative relative path
-    #rel_dir = os.path.dirname(os.path.realpath(__file__))
-	#rel_dir = rel_dir.replace('\\', '/')
-	#rel_dir = rel_dir + '\\'
-
-    rel_dir = os.path.dirname(__file__) # path of the epsg is always relative to this file
+    rel_dir = os.path.dirname(os.path.realpath(__file__))
+    rel_dir = rel_dir.replace('\\', '/')
     rel_dir = rel_dir + '/'
     epsg = rel_dir + 'epsg'
     esri = rel_dir + 'esri'
@@ -181,6 +177,24 @@ def wkt2epsg(wkt, forceProj4 = False, cstypeStat = False):
         else:
             return None
                 
+def wkt2cstype(wkt, forceProj4 = False, cstypeStat = False):
+    
+    p_in = osr.SpatialReference()
+    s = p_in.ImportFromWkt(wkt)
+
+    if s == 5:  # invalid WKT
+        return 'None'
+    if p_in.IsLocal() == 1:             # this is a local definition
+        return p_in.ExportToWkt()
+    if p_in.IsGeographic() == 1:        # This is a geographic srs
+        cstype = 'GEOGCS'
+    else:
+        cstype = 'PROJCS'               # This is a projected srs
+
+    return cstype
+
+
+
 def get_raster_wkt(input_raster):
     '''
     Function Def: get_raster_wkt(input_raster)
@@ -196,6 +210,20 @@ def get_raster_wkt(input_raster):
     prj_ras = input_layer.GetProjection()
     srs_ras = osr.SpatialReference(wkt=prj_ras)
     return srs_ras.ExportToWkt()
+
+def get_raster_epsg(inraster):
+    '''
+    Function Def: get_raster_epsg(inraster)
+
+    inraster     ~ path to a raster file [REQUIRED]
+    - - - - - - - - - - - - - - - - - - - -
+
+    returns      ~ list containing epsg code, if found, and a confidence ranking (1 to 6, with 1 being the highes confidence) .e.g ['EPSG:32734', 1]
+                 ~ None, if the EPSG code could not be found.
+    
+    '''
+    raster_epsg = wkt2epsg(get_raster_wkt(inraster), forceProj4 = False, cstypeStat = False)
+    return raster_epsg
 
 
 def project_raster(inRas, outRas, outEpsg, outPixelsize=None, NoDataValue = -9999, snap_clip=False, Snap_Raster=None, resample_alg = 'Nearest', data_type = None):   
@@ -374,16 +402,14 @@ def project_raster(inRas, outRas, outEpsg, outPixelsize=None, NoDataValue = -999
     #    proj_ras=None
 
 
-def get_raster_epsg(inraster):
-    '''
-    Function Def: get_raster_epsg(inraster)
+# Alternative relative path
+rel_dir = os.path.dirname(os.path.realpath(__file__))
+rel_dir = rel_dir.replace('\\', '/')
+rel_dir = rel_dir + '/'
 
-    inraster     ~ path to a raster file [REQUIRED]
-    - - - - - - - - - - - - - - - - - - - -
+print('RelDir 1: ', rel_dir1)
 
-    returns      ~ list containing epsg code, if found, and a confidence ranking (1 to 6, with 1 being the highes confidence) .e.g ['EPSG:32734', 1]
-                 ~ None, if the EPSG code could not be found.
-    
-    '''
-    raster_epsg = wkt2epsg(get_raster_wkt(inraster), forceProj4 = False, cstypeStat = False)
-    return raster_epsg
+rel_dir = os.path.dirname(__file__) # path of the epsg is always relative to this file
+rel_dir = rel_dir + '/'
+
+print('RelDir 2', rel_dir)
