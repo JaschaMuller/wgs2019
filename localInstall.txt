@@ -1,0 +1,4 @@
+Installing
+pip install C:path\to\folder
+Updating
+pip install --upgrade C:path\to\folder
